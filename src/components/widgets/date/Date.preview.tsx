@@ -1,6 +1,6 @@
-import type { WidgetPreviewProps } from "../../types/widget.types";
+import type { WidgetPreviewProps } from "../../../types/widget.types";
 
-export default function TextPreview({ widget }: WidgetPreviewProps) {
+export default function DatePreview({ widget }: WidgetPreviewProps) {
   return (
     <div style={{ padding: "12px" }}>
       <label style={{
@@ -14,9 +14,8 @@ export default function TextPreview({ widget }: WidgetPreviewProps) {
         {widget.required && <span style={{ color: "#ef4444", marginLeft: 3 }}>*</span>}
       </label>
       <input
-        type="text"
+        type="date"
         disabled
-        placeholder={(widget.config.placeholder as string) || "Texto..."}
         style={{
           width: "100%",
           padding: "8px 12px",

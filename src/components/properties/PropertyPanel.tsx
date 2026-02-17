@@ -1,66 +1,53 @@
-import { useBuilderStore } from '@/store/useBuilderStore';
-import { widgetRegistry } from '../widgets/registry';
+import { useBuilderStore } from "../../store/useBuilderStore";
+import { widgetRegistry } from "../widgets/registry";
 
-export default function PropertyPanel() {
+export default function PropertyPanel({ onClose }: { onClose?: () => void }) {
   const { widgets, selectedWidgetId, updateWidget } = useBuilderStore();
-  
   const widget = widgets.find((w) => w.id === selectedWidgetId);
-  
-  if (!widget) {
-    return (
-      <div className="p-4 text-center text-gray-500">
-        <div className="text-4xl mb-4 opacity-30">⚙️</div>
-        <p>Selecciona un widget para editar sus propiedades</p>
-      </div>
-    );
-  }
-
-  const widgetDef = widgetRegistry[widget.type];
-  const PropertiesComponent = widgetDef?.properties;
 
   return (
-    <div className="p-4 bg-white h-full overflow-y-auto">
-      <h3 className="font-semibold text-gray-800 mb-4">Propiedades</h3>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: "#ffffff" }}>
 
-      {/* Propiedades básicas para todos los widgets */}
-      <div className="space-y-4 mb-6">
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "16px 14px 10px", borderBottom: "1px solid #e2e8f0" }}>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Etiqueta
-          </label>
-          <input
-            type="text"
-            value={widget.label}
-            onChange={(e) => updateWidget(widget.id, { label: e.target.value })}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-          />
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111827", margin: 0 }}>
+            Propiedades
+          </h2>
+          {widget && (
+            <span style={{ fontSize: 11, color: "#00c2a8", fontWeight: 500 }}>
+              {widgetRegistry[widget.type]?.label}
+            </span>
+          )}
         </div>
-
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            checked={widget.required}
-            onChange={(e) => updateWidget(widget.id, { required: e.target.checked })}
-            className="h-4 w-4 text-blue-600 rounded"
-          />
-          <span className="ml-2 text-sm text-gray-600">
-            Campo obligatorio
-          </span>
-        </div>
+        {onClose && (
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#9ca3af", width: 28, height: 28, borderRadius: 6 }}>
+            ✕
+          </button>
+        )}
       </div>
 
-      {/* Propiedades específicas del widget */}
-      {PropertiesComponent ? (
-        <div>
-          <h4 className="font-medium text-gray-700 mb-3">Configuración específica</h4>
-          <PropertiesComponent
-            widget={widget}
-            updateWidget={updateWidget}
-          />
+      {/* Sin widget seleccionado */}
+      {!widget && (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center", color: "#9ca3af" }}>
+          <span style={{ fontSize: 36, opacity: 0.4 }}>⚙️</span>
+          <p style={{ fontSize: 13, lineHeight: 1.5 }}>
+            Selecciona un campo para editar sus propiedades
+          </p>
         </div>
-      ) : (
-        <div className="text-gray-500 text-sm">
-          <p>No hay propiedades específicas para este widget</p>
+      )}
+
+      {/* Propiedades del widget seleccionado */}
+      {widget && (
+        <div style={{ flex: 1, padding: "16px 14px", overflowY: "auto" }}>
+          {(() => {
+            const PropertiesComp = widgetRegistry[widget.type]?.properties;
+            return PropertiesComp ? (
+              <PropertiesComp widget={widget} updateWidget={updateWidget} />
+            ) : (
+              <p style={{ color: "#9ca3af", fontSize: 13 }}>Sin propiedades configurables</p>
+            );
+          })()}
         </div>
       )}
     </div>

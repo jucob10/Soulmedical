@@ -1,5 +1,11 @@
 import BuilderLayout from "../components/builder/BuilderLayout";
 
-export default function BuilderPage() {
-  return <BuilderLayout />;
+type BuilderPageProps = {
+  folderId: string;
+  formId: string;
+  onBack: () => void;
+};
+
+export default function BuilderPage({ folderId, formId, onBack }: BuilderPageProps) {
+  return <BuilderLayout onBack={onBack} />;
 }

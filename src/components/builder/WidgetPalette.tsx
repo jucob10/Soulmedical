@@ -1,60 +1,79 @@
-import { useState } from 'react';
-import { widgetRegistry } from '../widgets/registry';
-import { useBuilderStore } from '@/store/useBuilderStore';
+import { useState } from "react";
+import { useBuilderStore } from "../../store/useBuilderStore";
+import { widgetRegistry } from "../widgets/registry";
 
-export default function WidgetPalette() {
-  const addWidget = useBuilderStore((state) => state.addWidget);
-  const [searchTerm, setSearchTerm] = useState('');
+const WIDGET_ICONS: Record<string, string> = {
+  text: "📝",
+  date: "📅",
+  id_scanner: "🪪",
+};
 
-  // Widgets filtrados por búsqueda
-  const availableWidgets = Object.values(widgetRegistry).filter(
-    (widget) =>
-      widget.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      widget.category.toLowerCase().includes(searchTerm.toLowerCase())
+export default function WidgetPalette({ onClose }: { onClose?: () => void }) {
+  const addWidget = useBuilderStore((s) => s.addWidget);
+  const [search, setSearch] = useState("");
+
+  const filtered = Object.values(widgetRegistry).filter((w) =>
+    w.label.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleAdd = (type: string) => {
+    addWidget(type);
+    onClose?.();
+  };
+
   return (
-    <div className="p-4 bg-white h-full overflow-y-auto">
-      <h3 className="font-semibold text-gray-800 mb-4">Widgets disponibles</h3>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: "#ffffff" }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 14px 10px", borderBottom: "1px solid #e2e8f0" }}>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111827", margin: 0 }}>Widgets</h2>
+        {onClose && (
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#9ca3af", width: 28, height: 28, borderRadius: 6 }}>✕</button>
+        )}
+      </div>
 
       {/* Buscador */}
-      <input
-        type="text"
-        placeholder="Buscar widget..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full mb-4 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <div style={{ padding: "10px 12px", borderBottom: "1px solid #e2e8f0" }}>
+        <div style={{ position: "relative" }}>
+          <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#9ca3af" }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar widget..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "100%", padding: "7px 10px 7px 32px", border: "1.5px solid #e2e8f0", borderRadius: 6, fontSize: 13, fontFamily: "inherit", background: "#f8fafc", color: "#111827", outline: "none", boxSizing: "border-box" }}
+          />
+        </div>
+      </div>
 
-      <div className="space-y-2">
-        {availableWidgets.map((widgetDef) => (
+      {/* Label sección */}
+      <div style={{ padding: "12px 14px 4px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#9ca3af", textTransform: "uppercase" }}>
+        CAMPOS DISPONIBLES
+      </div>
+      {/* Grid de widgets */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, padding: "4px 8px" }}>
+        {filtered.map((def) => (
           <button
-            key={widgetDef.type}
-            onClick={() => addWidget(widgetDef.type)}
-            className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center gap-3"
+            key={def.type}
+            onClick={() => handleAdd(def.type)}
+            title={def.label}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 6px", borderRadius: 8, border: "1.5px solid transparent", background: "none", cursor: "pointer", fontFamily: "inherit" }}
+            onMouseOver={(e) => { e.currentTarget.style.background = "#e6faf7"; e.currentTarget.style.borderColor = "rgba(0,194,168,0.3)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "transparent"; }}
           >
-            <span className="text-xl">{widgetDef.icon}</span>
-            <div className="flex-1">
-              <div className="font-medium text-gray-800">
-                {widgetDef.label}
-              </div>
-              <div className="text-xs text-gray-500">
-                {widgetDef.category}
-              </div>
-            </div>
-            <span className="text-blue-600">+</span>
+            <span style={{ fontSize: 24 }}>{WIDGET_ICONS[def.type] ?? "🔧"}</span>
+            <span style={{ fontSize: 11, fontWeight: 500, color: "#6b7280", textAlign: "center" }}>{def.label}</span>
           </button>
         ))}
       </div>
 
-      {availableWidgets.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <p>No hay widgets disponibles</p>
-          <p className="text-sm mt-2">
-            Intenta con otro término de búsqueda
-          </p>
-        </div>
+      {/* Sin resultados */}
+      {filtered.length === 0 && (
+        <p style={{ padding: 24, textAlign: "center", fontSize: 13, color: "#9ca3af" }}>
+          Sin resultados para "{search}"
+        </p>
       )}
+
     </div>
   );
 }

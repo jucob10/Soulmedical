@@ -1,6 +1,6 @@
-import type { WidgetPropertiesProps } from "../../types/widget.types";
+import type { WidgetPropertiesProps } from "../../../types/widget.types";
 
-export default function TextProperties({ widget, updateWidget }: WidgetPropertiesProps) {
+export default function DateProperties({ widget, updateWidget }: WidgetPropertiesProps) {
   const inputStyle = {
     width: "100%",
     padding: "8px 12px",
@@ -24,40 +24,29 @@ export default function TextProperties({ widget, updateWidget }: WidgetPropertie
     marginBottom: 5,
   };
 
-  const groupStyle = { marginBottom: 14 };
-
   return (
     <>
-      <div style={groupStyle}>
+      <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Etiqueta</label>
         <input style={inputStyle} value={widget.label}
           onChange={(e) => updateWidget(widget.id, { label: e.target.value })} />
       </div>
 
-      <div style={groupStyle}>
-        <label style={labelStyle}>Placeholder</label>
-        <input style={inputStyle}
-          value={(widget.config.placeholder as string) || ""}
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>Fecha mínima</label>
+        <input type="date" style={inputStyle}
+          value={(widget.config.min as string) || ""}
           onChange={(e) => updateWidget(widget.id, {
-            config: { ...widget.config, placeholder: e.target.value },
+            config: { ...widget.config, min: e.target.value },
           })} />
       </div>
 
-      <div style={groupStyle}>
-        <label style={labelStyle}>Valor por defecto</label>
-        <input style={inputStyle}
-          value={(widget.config.defaultValue as string) || ""}
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>Fecha máxima</label>
+        <input type="date" style={inputStyle}
+          value={(widget.config.max as string) || ""}
           onChange={(e) => updateWidget(widget.id, {
-            config: { ...widget.config, defaultValue: e.target.value },
-          })} />
-      </div>
-
-      <div style={groupStyle}>
-        <label style={labelStyle}>Longitud máxima</label>
-        <input style={inputStyle} type="number" min={1}
-          value={(widget.config.maxLength as number) ?? 100}
-          onChange={(e) => updateWidget(widget.id, {
-            config: { ...widget.config, maxLength: Number(e.target.value) },
+            config: { ...widget.config, max: e.target.value },
           })} />
       </div>
 
