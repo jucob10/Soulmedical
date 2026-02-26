@@ -1,4 +1,4 @@
-import type { WidgetPreviewProps } from "../../types/widget.types";
+import type { WidgetPreviewProps } from "../../../types/widget.types";
 
 export default function TextPreview({ widget }: WidgetPreviewProps) {
   return (

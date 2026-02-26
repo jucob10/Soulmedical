@@ -1,8 +1,10 @@
+import type { WidgetInstance } from "./widget.types";
 export type FormItem = {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
+  widgets?: WidgetInstance[];
 };
 
 export type FolderItem = {

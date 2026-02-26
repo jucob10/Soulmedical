@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { arrayMove } from "@dnd-kit/sortable";
 import type { WidgetInstance } from "../types/widget.types";
 import { widgetRegistry } from "../components/widgets/registry";
@@ -6,6 +7,7 @@ import { widgetRegistry } from "../components/widgets/registry";
 interface BuilderState {
   widgets: WidgetInstance[];
   selectedWidgetId: string | null;
+  
 
   addWidget: (type: string) => void;
   removeWidget: (id: string) => void;
@@ -13,11 +15,17 @@ interface BuilderState {
   updateWidget: (id: string, changes: Partial<WidgetInstance>) => void;
   moveWidget: (fromIndex: number, toIndex: number) => void;
   clearSelection: () => void;
+  setWidgets: (widgets: WidgetInstance[]) => void;
+  clearWidgets: () => void;
 }
 
-export const useBuilderStore = create<BuilderState>((set) => ({
+export const useBuilderStore = create<BuilderState>()(
+  persist(
+    (set) => ({
   widgets: [],
   selectedWidgetId: null,
+  setWidgets: (widgets) => set({ widgets }),
+  clearWidgets: () => set({ widgets: [], selectedWidgetId: null }),
 
   addWidget: (type) =>
     set((state) => {
@@ -60,4 +68,9 @@ export const useBuilderStore = create<BuilderState>((set) => ({
     set((state) => ({
       widgets: arrayMove(state.widgets, fromIndex, toIndex),
     })),
-}));
+}),
+    {
+      name: "soulforms-builder",
+    }
+  )
+);

@@ -1,4 +1,4 @@
-import type { WidgetPropertiesProps } from "../../types/widget.types";
+import type { WidgetPropertiesProps } from "../../../types/widget.types";
 
 export default function TextProperties({ widget, updateWidget }: WidgetPropertiesProps) {
   const inputStyle = {
@@ -24,47 +24,121 @@ export default function TextProperties({ widget, updateWidget }: WidgetPropertie
     marginBottom: 5,
   };
 
-  const groupStyle = { marginBottom: 14 };
-
   return (
     <>
-      <div style={groupStyle}>
+      <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Etiqueta</label>
-        <input style={inputStyle} value={widget.label}
-          onChange={(e) => updateWidget(widget.id, { label: e.target.value })} />
+        <input
+          style={inputStyle}
+          value={widget.label}
+          onChange={(e) => updateWidget(widget.id, { label: e.target.value })}
+        />
       </div>
 
-      <div style={groupStyle}>
+      <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Placeholder</label>
-        <input style={inputStyle}
+        <input
+          style={inputStyle}
           value={(widget.config.placeholder as string) || ""}
-          onChange={(e) => updateWidget(widget.id, {
-            config: { ...widget.config, placeholder: e.target.value },
-          })} />
+          onChange={(e) =>
+            updateWidget(widget.id, {
+              config: { ...widget.config, placeholder: e.target.value },
+            })
+          }
+        />
       </div>
 
-      <div style={groupStyle}>
+      <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Valor por defecto</label>
-        <input style={inputStyle}
+        <input
+          style={inputStyle}
           value={(widget.config.defaultValue as string) || ""}
-          onChange={(e) => updateWidget(widget.id, {
-            config: { ...widget.config, defaultValue: e.target.value },
-          })} />
+          onChange={(e) =>
+            updateWidget(widget.id, {
+              config: { ...widget.config, defaultValue: e.target.value },
+            })
+          }
+        />
       </div>
 
-      <div style={groupStyle}>
+      <div style={{ marginBottom: 14 }}>
         <label style={labelStyle}>Longitud máxima</label>
-        <input style={inputStyle} type="number" min={1}
-          value={(widget.config.maxLength as number) ?? 100}
-          onChange={(e) => updateWidget(widget.id, {
-            config: { ...widget.config, maxLength: Number(e.target.value) },
-          })} />
+        <input
+          type="number"
+          style={inputStyle}
+          value={(widget.config.maxLength as number) || 100}
+          onChange={(e) =>
+            updateWidget(widget.id, {
+              config: { ...widget.config, maxLength: parseInt(e.target.value) || 100 },
+            })
+          }
+        />
       </div>
 
-      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#111827", cursor: "pointer" }}>
-        <input type="checkbox" checked={widget.required}
-          onChange={(e) => updateWidget(widget.id, { required: e.target.checked })} />
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          color: "#111827",
+          cursor: "pointer",
+          marginBottom: 12,
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={widget.required}
+          onChange={(e) =>
+            updateWidget(widget.id, { required: e.target.checked })
+          }
+        />
         <span>Campo obligatorio</span>
+      </label>
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          color: "#111827",
+          cursor: "pointer",
+          marginBottom: 12,
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={(widget.config.allowNumbers as boolean) || false}
+          onChange={(e) =>
+            updateWidget(widget.id, {
+              config: { ...widget.config, allowNumbers: e.target.checked },
+            })
+          }
+        />
+        <span>Permitir números</span>
+      </label>
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          color: "#111827",
+          cursor: "pointer",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={(widget.config.allowSpecialChars as boolean) || false}
+          onChange={(e) =>
+            updateWidget(widget.id, {
+              config: { ...widget.config, allowSpecialChars: e.target.checked },
+            })
+          }
+        />
+        <span>Permitir caracteres especiales</span>
       </label>
     </>
   );

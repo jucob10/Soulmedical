@@ -3,12 +3,33 @@ import BuilderCanvas from "./BuilderCanvas";
 import WidgetPalette from "./WidgetPalette";
 import PropertyPanel from "../properties/PropertyPanel";
 import { useBuilderStore } from "../../store/useBuilderStore";
+import PreviewPage from "@/pages/PreviewPage";
+import logo from "../../assets/Logo_GrupoSoul.png";
+import { useFolderStore } from "../../store/useFolderStore";
 
-export default function BuilderLayout({ onBack }: { onBack?: () => void }) {
+export default function BuilderLayout({ folderId, formId, onBack }: { folderId?: string; formId?: string; onBack?: () => void }) {
   const [mobilePanel, setMobilePanel] = useState<"palette" | "props" | null>(null);
-  const selectedWidgetId = useBuilderStore((s) => s.selectedWidgetId);
+  const widgets = useBuilderStore((s) => s.widgets);
+  const { saveFormWidgets } = useFolderStore();
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
+  const selectedWidgetId = useBuilderStore((s) => s.selectedWidgetId);
+  const [showPreview, setShowPreview] = useState(false);
   const closePanel = () => setMobilePanel(null);
+
+  const handleSave = () => {
+    if (!folderId || !formId) {
+      alert("No se puede guardar: formulario no identificado");
+      return;
+    }
+    setSaveStatus("saving");
+    saveFormWidgets(folderId, formId, widgets);
+    
+    setTimeout(() => {
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    }, 500);
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
@@ -32,26 +53,30 @@ export default function BuilderLayout({ onBack }: { onBack?: () => void }) {
               ← Volver
             </button>
           )}
-          <span style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>
-            📋 Editor de Formulario
+          <img src={logo} alt="Grupo Soul" style={{ height: 32, objectFit: "contain" }} />
+          <span style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>
+            Editor de Formulario
           </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button style={{
+          <button onClick={() => setShowPreview(true)} style={{
             padding: "6px 14px", borderRadius: 6,
             border: "1.5px solid #e2e8f0", background: "none",
             cursor: "pointer", fontSize: 13, fontWeight: 600,
             color: "#6b7280", fontFamily: "inherit",
           }}>
-            Vista previa
+            👁️ Vista previa
           </button>
-          <button style={{
+          <button onClick={handleSave} disabled={saveStatus === "saving"} style={{
             padding: "6px 14px", borderRadius: 6, border: "none",
-            background: "#00c2a8", color: "#fff",
-            cursor: "pointer", fontSize: 13,
+            background: saveStatus === "saved" ? "#10b981" : "#00c2a8",
+            color: "#fff",
+            cursor: saveStatus === "saving" ? "not-allowed" : "pointer",
+            fontSize: 13,
             fontWeight: 600, fontFamily: "inherit",
+            transition: "all 0.3s",
           }}>
-            Publicar
+            {saveStatus === "saving" ? "💾 Guardando..." : saveStatus === "saved" ? "✅ Guardado" : "💾 Guardar"}
           </button>
         </div>
       </header>
@@ -162,6 +187,12 @@ export default function BuilderLayout({ onBack }: { onBack?: () => void }) {
           .sf-show-mobile { display: none !important; }
         }
       `}</style>
+      {/* ── Vista Previa ── */}
+      {showPreview && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+          <PreviewPage onClose={() => setShowPreview(false)} />
+        </div>
+      )}
     </div>
   );
 }

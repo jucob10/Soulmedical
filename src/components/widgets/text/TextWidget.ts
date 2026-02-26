@@ -1,4 +1,3 @@
-
 import Preview from "./Text.preview.tsx";
 import Properties from "./Text.properties.tsx";
 import Render from "./Text.render.tsx";
@@ -12,6 +11,8 @@ export const TextWidget: WidgetDefinition = {
     placeholder: "",
     defaultValue: "",
     maxLength: 100,
+    allowNumbers: false,
+    allowSpecialChars: false,
   },
   preview: Preview,
   properties: Properties,

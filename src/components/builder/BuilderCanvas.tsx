@@ -53,13 +53,14 @@ function SortableItem({ widget }: { widget: WidgetInstance }) {
           display: "flex",
           alignItems: "center",
           gap: 6,
-          padding: "6px 12px",
+          padding: "8px 12px",
           background: "#f8fafc",
           borderBottom: "1px solid #e2e8f0",
           cursor: "grab",
           fontSize: 11,
           color: "#9ca3af",
           userSelect: "none",
+          touchAction: "none",
         }}
       >
         <span>⠿</span>

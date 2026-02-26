@@ -4,13 +4,21 @@ import { FOLDER_COLORS, FOLDER_ICONS } from "../types/folder.types";
 import logo from "../assets/Logo_GrupoSoul.png";
 
 export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: string, formId: string) => void }) {
-  const { folders, addFolder, deleteFolder, updateFolder, addForm, deleteForm, selectFolder, selectedFolderId } = useFolderStore();
+  const { folders, addFolder, deleteFolder, updateFolder, addForm, deleteForm, selectFolder, selectedFolderId, duplicateFolder, duplicateForm } = useFolderStore();
 
   // Estados para modales
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [showEditFolder, setShowEditFolder] = useState(false);
   const [showNewForm, setShowNewForm] = useState(false);
   const [editingFolder, setEditingFolder] = useState<string | null>(null);
+  
+  // Estados de confirmación para formularios
+  const [confirmDelete, setConfirmDelete] = useState<{ folderId: string; formId: string; formName: string } | null>(null);
+  const [confirmDuplicate, setConfirmDuplicate] = useState<{ folderId: string; formId: string; formName: string } | null>(null);
+  
+  // Estados de confirmación para carpetas
+  const [confirmDeleteFolder, setConfirmDeleteFolder] = useState<{ folderId: string; folderName: string } | null>(null);
+  const [confirmDuplicateFolder, setConfirmDuplicateFolder] = useState<{ folderId: string; folderName: string } | null>(null);
 
   // Campos del formulario de carpeta
   const [folderName, setFolderName] = useState("");
@@ -27,6 +35,32 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
     setFolderColor("#00c2a8");
     setFolderIcon("📁");
     setShowNewFolder(false);
+  };
+
+  // Handlers de confirmación para formularios
+  const handleConfirmDelete = () => {
+    if (!confirmDelete) return;
+    deleteForm(confirmDelete.folderId, confirmDelete.formId);
+    setConfirmDelete(null);
+  };
+
+  const handleConfirmDuplicate = () => {
+    if (!confirmDuplicate) return;
+    duplicateForm(confirmDuplicate.folderId, confirmDuplicate.formId);
+    setConfirmDuplicate(null);
+  };
+
+  // Handlers de confirmación para carpetas
+  const handleConfirmDeleteFolder = () => {
+    if (!confirmDeleteFolder) return;
+    deleteFolder(confirmDeleteFolder.folderId);
+    setConfirmDeleteFolder(null);
+  };
+
+  const handleConfirmDuplicateFolder = () => {
+    if (!confirmDuplicateFolder) return;
+    duplicateFolder(confirmDuplicateFolder.folderId);
+    setConfirmDuplicateFolder(null);
   };
 
   const handleSaveEditFolder = () => {
@@ -103,11 +137,32 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
     <div style={{ minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Segoe UI', sans-serif" }}>
 
       {/* ── Topbar ── */}
-      <header style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <img src={logo} alt="Grupo Soul" style={{ height: 40, objectFit: "contain" }} />
-        <span style={{ fontSize: 13, color: "#9ca3af" }}>Plataforma de Formularios</span>
+      <header style={{
+        background: "#ffffff",
+        borderBottom: "1px solid #e2e8f0",
+        padding: "12px 16px",
+        minHeight: 64,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 8,
+      }}>
+        <img src={logo} alt="Grupo Soul" style={{
+          height: 36,
+          maxWidth: "180px",
+          objectFit: "contain",
+        }} />
+        <span style={{
+          fontSize: 12,
+          color: "#9ca3af",
+          display: "none",
+        }}
+        className="show-desktop">
+          Plataforma de Formularios
+        </span>
       </header>
-
+      
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px" }}>
 
         {/* Vista: Lista de carpetas */}
@@ -139,7 +194,6 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
                   onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.12)"; }}
                   onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"; }}
                 >
-                  {/* Color top bar */}
                   <div style={{ height: 6, background: folder.color }} />
 
                   <div style={{ padding: "16px" }}>
@@ -152,7 +206,12 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
                           title="Editar carpeta"
                         >✏️</button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); if (confirm(`¿Eliminar la carpeta "${folder.name}"?`)) deleteFolder(folder.id); }}
+                          onClick={(e) => { e.stopPropagation(); setConfirmDuplicateFolder({ folderId: folder.id, folderName: folder.name }); }}
+                          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: "4px", borderRadius: 4, color: "#9ca3af" }}
+                          title="Duplicar carpeta"
+                        >📋</button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmDeleteFolder({ folderId: folder.id, folderName: folder.name }); }}
                           style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: "4px", borderRadius: 4, color: "#9ca3af" }}
                           title="Eliminar carpeta"
                         >🗑️</button>
@@ -214,10 +273,18 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                     <span style={{ fontSize: 28 }}>📋</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); if (confirm(`¿Eliminar "${form.name}"?`)) deleteForm(selectedFolder.id, form.id); }}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 14 }}
-                    >🗑️</button>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmDuplicate({ folderId: selectedFolder.id, formId: form.id, formName: form.name }); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 14 }}
+                        title="Duplicar formulario"
+                      >📋</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete({ folderId: selectedFolder.id, formId: form.id, formName: form.name }); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 14 }}
+                        title="Eliminar formulario"
+                      >🗑️</button>
+                    </div>
                   </div>
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>{form.name}</h3>
                   <p style={{ fontSize: 11, color: "#9ca3af", margin: 0 }}>Editado: {form.updatedAt}</p>
@@ -234,7 +301,7 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
       {/* ── Modal Nueva Carpeta ── */}
       {showNewFolder && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 420, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 20, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: "#111827" }}>Nueva Carpeta</h2>
 
             <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", display: "block", marginBottom: 6, textTransform: "uppercase" }}>Nombre</label>
@@ -269,7 +336,7 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
       {/* ── Modal Editar Carpeta ── */}
       {showEditFolder && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 420, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 20, width: "100%", maxWidth: 420, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: "#111827" }}>Editar Carpeta</h2>
 
             <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", display: "block", marginBottom: 6, textTransform: "uppercase" }}>Nombre</label>
@@ -304,7 +371,7 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
       {/* ── Modal Nuevo Formulario ── */}
       {showNewForm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 20, width: "100%", maxWidth: 380, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: "#111827" }}>Nuevo Formulario</h2>
             <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", display: "block", marginBottom: 6, textTransform: "uppercase" }}>Nombre del formulario</label>
             <input style={inputStyle} placeholder="Ej: Registro de pacientes" value={newFormName} onChange={(e) => setNewFormName(e.target.value)} autoFocus
@@ -316,6 +383,300 @@ export default function HomePage({ onOpenBuilder }: { onOpenBuilder: (folderId: 
           </div>
         </div>
       )}
+
+      {/* ── Modal Confirmar Eliminar Formulario ── */}
+      {confirmDelete && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: "32px",
+            width: "100%",
+            maxWidth: 420,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            textAlign: "center",
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 20px",
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 8px 20px rgba(239,68,68,0.3)",
+            }}>
+              <span style={{ fontSize: 32 }}>🗑️</span>
+            </div>
+
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: "0 0 12px" }}>
+              ¿Eliminar formulario?
+            </h2>
+            <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 24px", lineHeight: 1.6 }}>
+              Estás a punto de eliminar "<strong>{confirmDelete.formName}</strong>". Esta acción no se puede deshacer.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button
+                onClick={() => setConfirmDelete(null)}
+                style={{
+                  padding: "10px 24px",
+                  background: "none",
+                  color: "#6b7280",
+                  border: "1.5px solid #e2e8f0",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                style={{
+                  padding: "10px 24px",
+                  background: "#ef4444",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: "0 2px 8px rgba(239,68,68,0.3)",
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Confirmar Duplicar Formulario ── */}
+      {confirmDuplicate && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: "32px",
+            width: "100%",
+            maxWidth: 420,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            textAlign: "center",
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 20px",
+              background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 8px 20px rgba(59,130,246,0.3)",
+            }}>
+              <span style={{ fontSize: 32 }}>📋</span>
+            </div>
+
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: "0 0 12px" }}>
+              ¿Duplicar formulario?
+            </h2>
+            <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 24px", lineHeight: 1.6 }}>
+              Se creará una copia de "<strong>{confirmDuplicate.formName}</strong>" con todos sus campos.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button
+                onClick={() => setConfirmDuplicate(null)}
+                style={{
+                  padding: "10px 24px",
+                  background: "none",
+                  color: "#6b7280",
+                  border: "1.5px solid #e2e8f0",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDuplicate}
+                style={{
+                  padding: "10px 24px",
+                  background: "#3b82f6",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: "0 2px 8px rgba(59,130,246,0.3)",
+                }}
+              >
+                Duplicar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Confirmar Eliminar Carpeta ── */}
+      {confirmDeleteFolder && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: "32px",
+            width: "100%",
+            maxWidth: 420,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            textAlign: "center",
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 20px",
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 8px 20px rgba(239,68,68,0.3)",
+            }}>
+              <span style={{ fontSize: 32 }}>🗑️</span>
+            </div>
+
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: "0 0 12px" }}>
+              ¿Eliminar carpeta?
+            </h2>
+            <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 24px", lineHeight: 1.6 }}>
+              Estás a punto de eliminar la carpeta "<strong>{confirmDeleteFolder.folderName}</strong>" y todos sus formularios. Esta acción no se puede deshacer.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button
+                onClick={() => setConfirmDeleteFolder(null)}
+                style={{
+                  padding: "10px 24px",
+                  background: "none",
+                  color: "#6b7280",
+                  border: "1.5px solid #e2e8f0",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDeleteFolder}
+                style={{
+                  padding: "10px 24px",
+                  background: "#ef4444",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: "0 2px 8px rgba(239,68,68,0.3)",
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Confirmar Duplicar Carpeta ── */}
+      {confirmDuplicateFolder && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: "32px",
+            width: "100%",
+            maxWidth: 420,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            textAlign: "center",
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 20px",
+              background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 8px 20px rgba(59,130,246,0.3)",
+            }}>
+              <span style={{ fontSize: 32 }}>📋</span>
+            </div>
+
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: "0 0 12px" }}>
+              ¿Duplicar carpeta?
+            </h2>
+            <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 24px", lineHeight: 1.6 }}>
+              Se creará una copia de la carpeta "<strong>{confirmDuplicateFolder.folderName}</strong>" con todos sus formularios.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button
+                onClick={() => setConfirmDuplicateFolder(null)}
+                style={{
+                  padding: "10px 24px",
+                  background: "none",
+                  color: "#6b7280",
+                  border: "1.5px solid #e2e8f0",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDuplicateFolder}
+                style={{
+                  padding: "10px 24px",
+                  background: "#3b82f6",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  boxShadow: "0 2px 8px rgba(59,130,246,0.3)",
+                }}
+              >
+                Duplicar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (min-width: 640px) {
+          .show-desktop { display: inline !important; }
+        }
+      `}</style>
     </div>
   );
 }
